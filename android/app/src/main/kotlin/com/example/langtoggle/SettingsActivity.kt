@@ -1,6 +1,8 @@
 package com.example.langtoggle
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -15,6 +17,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var statusFlag: TextView
     private lateinit var statusName: TextView
     private lateinit var statusMode: TextView
+    private lateinit var statusToggle: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,23 +30,55 @@ class SettingsActivity : AppCompatActivity() {
         statusFlag = findViewById(R.id.status_flag)
         statusName = findViewById(R.id.status_lang_name)
         statusMode = findViewById(R.id.status_mode)
+        statusToggle = findViewById(R.id.status_toggle)
 
         findViewById<View>(R.id.setting_primary).setOnClickListener { pickPrimaryLanguage() }
         findViewById<View>(R.id.setting_targets).setOnClickListener { pickTargetLanguages() }
         findViewById<View>(R.id.setting_interval).setOnClickListener { pickInterval() }
+        findViewById<View>(R.id.setting_add_language).setOnClickListener { openDeviceLanguageSettings() }
+        statusToggle.setOnClickListener { toggleLearningMode() }
 
         refreshUI()
     }
 
     private fun refreshUI() {
         val current = prefs.currentLanguage
+        val enabled = prefs.isEnabled
         statusFlag.text = current.flag
         statusName.text = current.name
-        statusMode.text = if (prefs.isEnabled) "Learning Mode" else "Primary Mode"
+        statusMode.text = if (enabled) "Learning Mode" else "Primary Mode"
+        statusToggle.text = if (enabled) "ON" else "OFF"
+        statusToggle.setBackgroundResource(
+            if (enabled) R.drawable.toggle_bg_on else R.drawable.toggle_bg_off
+        )
         primaryValue.text = prefs.primaryLanguage.toString()
         val targets = prefs.targetLanguages
         targetsValue.text = if (targets.isEmpty()) "None selected" else targets.joinToString("  ") { it.flag }
         intervalValue.text = prefs.interval.label
+    }
+
+    private fun toggleLearningMode() {
+        if (prefs.isEnabled) {
+            prefs.isEnabled = false
+            prefs.currentLanguageCode = prefs.primaryLanguageCode
+            LangToggleWidget.setAppLocale(this, prefs.primaryLanguageCode)
+            androidx.work.WorkManager.getInstance(this).cancelUniqueWork(LangToggleWidget.WORK_NAME)
+        } else {
+            if (prefs.targetLanguages.isEmpty()) {
+                AlertDialog.Builder(this)
+                    .setTitle("No languages selected")
+                    .setMessage("Pick at least one language to learn first.")
+                    .setPositiveButton("OK", null)
+                    .show()
+                return
+            }
+            prefs.isEnabled = true
+            LangToggleWidget.pickNext(prefs)
+            LangToggleWidget.setAppLocale(this, prefs.currentLanguageCode)
+            LangToggleWidget.scheduleRotation(this, prefs.interval)
+        }
+        refreshUI()
+        LangToggleWidget.refreshAll(this)
     }
 
     private fun pickPrimaryLanguage() {
@@ -100,6 +135,16 @@ class SettingsActivity : AppCompatActivity() {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    private fun openDeviceLanguageSettings() {
+        startActivity(Intent(Settings.ACTION_LOCALE_SETTINGS))
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Language.refresh()
+        refreshUI()
     }
 
     override fun onPause() {

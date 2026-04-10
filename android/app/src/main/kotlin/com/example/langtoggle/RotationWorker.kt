@@ -11,6 +11,11 @@ class RotationWorker(context: Context, params: WorkerParameters) : Worker(contex
         LangToggleWidget.pickNext(prefs)
         LangToggleWidget.setAppLocale(applicationContext, prefs.currentLanguageCode)
         LangToggleWidget.refreshAll(applicationContext)
+
+        // If using random interval, re-schedule the next one-shot with a new random delay
+        if (prefs.interval == ChangeInterval.RANDOM) {
+            LangToggleWidget.scheduleRandomOneShot(applicationContext)
+        }
         return Result.success()
     }
 }

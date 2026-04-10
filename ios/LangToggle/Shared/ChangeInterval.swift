@@ -2,6 +2,7 @@ import Foundation
 
 enum ChangeInterval: String, CaseIterable, Identifiable {
     case onUnlock = "ON_UNLOCK"
+    case random = "RANDOM"
     case everyHour = "EVERY_HOUR"
     case every6Hours = "EVERY_6_HOURS"
     case everyDay = "EVERY_DAY"
@@ -13,6 +14,7 @@ enum ChangeInterval: String, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .onUnlock: return "Every unlock / wake"
+        case .random: return "Random (1–8 hours)"
         case .everyHour: return "Every hour"
         case .every6Hours: return "Every 6 hours"
         case .everyDay: return "Once a day"
@@ -24,6 +26,7 @@ enum ChangeInterval: String, CaseIterable, Identifiable {
     var refreshMinutes: Int? {
         switch self {
         case .onUnlock: return nil
+        case .random: return Int.random(in: 60...480)
         case .everyHour: return 60
         case .every6Hours: return 360
         case .everyDay: return 1440

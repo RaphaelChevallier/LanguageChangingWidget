@@ -3,12 +3,14 @@ import WidgetKit
 
 struct ContentView: View {
     private let accent = Color(red: 0.42, green: 0.39, blue: 1.0)
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var prefs = PreferencesManager.shared
     @State private var isEnabled: Bool = PreferencesManager.shared.isEnabled
     @State private var primaryCode: String = PreferencesManager.shared.primaryLanguageCode
     @State private var targetCodes: Set<String> = Set(PreferencesManager.shared.targetLanguageCodes)
     @State private var intervalName: String = PreferencesManager.shared.intervalName
+    @State private var languages: [Language] = Language.all
 
     var body: some View {
         NavigationView {
@@ -39,7 +41,7 @@ struct ContentView: View {
 
                 // Primary Language
                 Section {
-                    ForEach(Language.all) { lang in
+                    ForEach(languages) { lang in
                         Button {
                             primaryCode = lang.code
                             prefs.primaryLanguageCode = lang.code
@@ -65,7 +67,7 @@ struct ContentView: View {
 
                 // Target Languages
                 Section {
-                    ForEach(Language.all.filter { $0.code != primaryCode }) { lang in
+                    ForEach(languages.filter { $0.code != primaryCode }) { lang in
                         Button {
                             if targetCodes.contains(lang.code) {
                                 targetCodes.remove(lang.code)
@@ -120,8 +122,43 @@ struct ContentView: View {
                 } header: {
                     Label("Change Interval", systemImage: "timer")
                 }
+
+                // Add Language
+                Section {
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(accent)
+                                .font(.title3)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Add Language").foregroundStyle(.primary)
+                                Text("Open device language settings")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.forward.app")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                } header: {
+                    Label("More Languages", systemImage: "globe")
+                } footer: {
+                    Text("Add a new language to your device, then return here to select it.")
+                }
             }
             .navigationTitle("LangToggle")
+            .onChange(of: scenePhase) { phase in
+                if phase == .active {
+                    Language.refresh()
+                    languages = Language.all
+                }
+            }
         }
     }
 }

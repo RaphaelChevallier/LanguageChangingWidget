@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.LocaleList
 import android.widget.RemoteViews
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.Locale
@@ -105,10 +106,28 @@ class LangToggleWidget : AppWidgetProvider() {
         }
 
         fun scheduleRotation(context: Context, interval: ChangeInterval) {
+            val wm = WorkManager.getInstance(context)
+            if (interval == ChangeInterval.RANDOM) {
+                wm.cancelUniqueWork(WORK_NAME)
+                scheduleRandomOneShot(context)
+                return
+            }
             val minutes = interval.minutes ?: return
             val request = PeriodicWorkRequestBuilder<RotationWorker>(minutes, TimeUnit.MINUTES).build()
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            wm.enqueueUniquePeriodicWork(
                 WORK_NAME, ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, request
+            )
+        }
+
+        fun scheduleRandomOneShot(context: Context) {
+            val delayMinutes = (60L..480L).random() // 1–8 hours
+            val request = OneTimeWorkRequestBuilder<RotationWorker>()
+                .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                WORK_NAME,
+                androidx.work.ExistingWorkPolicy.REPLACE,
+                request
             )
         }
 
