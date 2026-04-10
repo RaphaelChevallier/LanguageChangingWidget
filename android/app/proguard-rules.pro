@@ -1,0 +1,3 @@
+-keep class io.flutter.** { *; }
+-keep class com.example.language_toggle_widget.** { *; }
+-dontwarn io.flutter.**
