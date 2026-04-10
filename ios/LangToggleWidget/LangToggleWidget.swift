@@ -1,81 +1,69 @@
 import WidgetKit
 import SwiftUI
 
-// MARK: - Shared data keys (must match Flutter SharedPreferences keys)
-private let appGroupID = "group.com.example.languageToggleWidget"
-private let suiteName = appGroupID
-
-// MARK: - Model
-
-struct WidgetState {
-    let isEnabled: Bool
-    let languageFlag: String
-    let languageName: String
-
-    static var current: WidgetState {
-        let defaults = UserDefaults(suiteName: suiteName)
-        return WidgetState(
-            isEnabled: defaults?.bool(forKey: "flutter.is_enabled") ?? false,
-            languageFlag: defaults?.string(forKey: "flutter.current_language_flag") ?? "🏠",
-            languageName: defaults?.string(forKey: "flutter.current_language_name") ?? "Native"
-        )
-    }
-}
-
-// MARK: - Timeline provider
-
 struct LangToggleProvider: TimelineProvider {
     func placeholder(in context: Context) -> LangToggleEntry {
-        LangToggleEntry(date: Date(), state: WidgetState(isEnabled: false, languageFlag: "🏠", languageName: "Native"))
+        LangToggleEntry(date: Date(), isEnabled: false, flag: "🏠", name: "Native")
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LangToggleEntry) -> Void) {
-        completion(LangToggleEntry(date: Date(), state: .current))
+        let prefs = PreferencesManager.shared
+        completion(LangToggleEntry(
+            date: Date(),
+            isEnabled: prefs.isEnabled,
+            flag: prefs.currentLanguage.flag,
+            name: prefs.currentLanguage.name
+        ))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LangToggleEntry>) -> Void) {
-        let entry = LangToggleEntry(date: Date(), state: .current)
-        // Refresh every 15 minutes so the widget stays in sync.
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
-        completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
+        let prefs = PreferencesManager.shared
+
+        // If enabled and interval-based, rotate on timeline refresh
+        if prefs.isEnabled && prefs.interval != .onUnlock {
+            prefs.pickNext()
+        }
+
+        let entry = LangToggleEntry(
+            date: Date(),
+            isEnabled: prefs.isEnabled,
+            flag: prefs.currentLanguage.flag,
+            name: prefs.currentLanguage.name
+        )
+
+        let refreshMinutes = prefs.interval.refreshMinutes ?? 15
+        let next = Calendar.current.date(byAdding: .minute, value: refreshMinutes, to: Date())!
+        completion(Timeline(entries: [entry], policy: .after(next)))
     }
 }
 
-// MARK: - Entry
-
 struct LangToggleEntry: TimelineEntry {
     let date: Date
-    let state: WidgetState
+    let isEnabled: Bool
+    let flag: String
+    let name: String
 }
-
-// MARK: - Widget view
 
 struct LangToggleWidgetEntryView: View {
     var entry: LangToggleProvider.Entry
+    private let accent = Color(red: 0.42, green: 0.39, blue: 1.0)
 
     var body: some View {
         ZStack {
-            // Background
             RoundedRectangle(cornerRadius: 16)
-                .fill(entry.state.isEnabled
-                    ? Color(red: 0.42, green: 0.39, blue: 1.0)
-                    : Color(white: 0.12))
+                .fill(entry.isEnabled ? accent : Color(white: 0.12))
 
             VStack(spacing: 4) {
-                Text("🌐")
-                    .font(.caption2)
-                    .opacity(0.7)
-
-                Text(entry.state.languageFlag)
+                Text(entry.flag)
                     .font(.system(size: 34))
 
-                Text(entry.state.languageName)
+                Text(entry.name)
                     .font(.caption2)
                     .foregroundColor(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
 
-                Text(entry.state.isEnabled ? "ON" : "OFF")
+                Text(entry.isEnabled ? "ON" : "OFF")
                     .font(.caption2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -83,57 +71,28 @@ struct LangToggleWidgetEntryView: View {
                     .padding(.vertical, 3)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(entry.state.isEnabled
+                            .fill(entry.isEnabled
                                 ? Color.white.opacity(0.3)
                                 : Color.gray.opacity(0.4))
                     )
             }
             .padding(8)
         }
-        // Tapping the widget opens the main app.
         .widgetURL(URL(string: "langtoggle://toggle"))
     }
 }
 
-// MARK: - Widget configuration
-
 @main
 struct LangToggleWidget: Widget {
-    let kind: String = "LangToggleWidget"
+    let kind = "LangToggleWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LangToggleProvider()) { entry in
             LangToggleWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("LangToggle")
-        .description("Toggle language learning mode on or off.")
+        .description("Toggle language learning mode.")
         .supportedFamilies([.systemSmall, .systemMedium])
         .contentMarginsDisabled()
-    }
-}
-
-// MARK: - Preview
-
-struct LangToggleWidget_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            LangToggleWidgetEntryView(
-                entry: LangToggleEntry(
-                    date: Date(),
-                    state: WidgetState(isEnabled: false, languageFlag: "🏠", languageName: "Native")
-                )
-            )
-            .previewContext(WidgetPreviewContext(family: .systemSmall))
-            .previewDisplayName("OFF")
-
-            LangToggleWidgetEntryView(
-                entry: LangToggleEntry(
-                    date: Date(),
-                    state: WidgetState(isEnabled: true, languageFlag: "🇯🇵", languageName: "Japanese")
-                )
-            )
-            .previewContext(WidgetPreviewContext(family: .systemSmall))
-            .previewDisplayName("ON – Japanese")
-        }
     }
 }

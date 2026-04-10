@@ -1,0 +1,33 @@
+name: LangToggle
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+
+settings:
+  SWIFT_VERSION: "5.9"
+
+targets:
+  LangToggle:
+    type: application
+    platform: iOS
+    sources:
+      - path: LangToggle
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.langtoggle
+      INFOPLIST_FILE: LangToggle/Info.plist
+      CODE_SIGN_ENTITLEMENTS: LangToggle/LangToggle.entitlements
+    dependencies:
+      - target: LangToggleWidgetExtension
+
+  LangToggleWidgetExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: LangToggleWidget
+      - path: LangToggle/Shared
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.langtoggle.widget
+      INFOPLIST_FILE: LangToggleWidget/Info.plist
+      CODE_SIGN_ENTITLEMENTS: LangToggleWidget/LangToggleWidget.entitlements
