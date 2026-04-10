@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LangToggle</string>
+    <string name="widget_description">Toggle phone language for language learning</string>
+</resources>
