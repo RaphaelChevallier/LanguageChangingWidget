@@ -259,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Text(
                       _isEnabled
                           ? 'Tap to revert to your native language'
-                          : 'Tap to start language scrambling',
+                          : 'Tap to enable language rotation',
                       style: TextStyle(
                         color: Colors.grey[500],
                         fontSize: 13,

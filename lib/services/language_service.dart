@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'settings_service.dart';
@@ -66,8 +67,9 @@ class LanguageService {
     try {
       await _channel.invokeMethod<void>(
           'setLocale', {'languageCode': lang.code});
-    } on PlatformException {
+    } on PlatformException catch (e) {
       // Platform may not support per-app locale; Flutter locale change still works.
+      debugPrint('LangToggle: setLocale failed: $e');
     }
   }
 
@@ -76,8 +78,9 @@ class LanguageService {
     try {
       await _channel.invokeMethod<void>(
           'resetLocale', {'languageCode': lang.code});
-    } on PlatformException {
+    } on PlatformException catch (e) {
       // Best-effort.
+      debugPrint('LangToggle: resetLocale failed: $e');
     }
   }
 
@@ -90,8 +93,9 @@ class LanguageService {
         'languageName': _settings.currentLanguage.name,
         'languageFlag': _settings.currentLanguage.flag,
       });
-    } on PlatformException {
+    } on PlatformException catch (e) {
       // Widget update is best-effort.
+      debugPrint('LangToggle: updateWidget failed: $e');
     }
   }
 }

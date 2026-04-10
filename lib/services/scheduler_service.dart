@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'settings_service.dart';
 import 'language_service.dart';
@@ -28,7 +29,7 @@ class SchedulerService {
 
   /// Initialises WorkManager. Must be called once at app startup.
   Future<void> init() async {
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
   }
 
   /// Schedules (or re-schedules) the rotation task based on current settings.
