@@ -14,9 +14,9 @@ final class PreferencesManager {
         set { defaults.set(newValue, forKey: "is_enabled"); sync() }
     }
 
-    var nativeLanguageCode: String {
-        get { defaults.string(forKey: "native_language") ?? "en" }
-        set { defaults.set(newValue, forKey: "native_language"); sync() }
+    var primaryLanguageCode: String {
+        get { defaults.string(forKey: "primary_language") ?? "en" }
+        set { defaults.set(newValue, forKey: "primary_language"); sync() }
     }
 
     var targetLanguageCodes: [String] {
@@ -30,16 +30,16 @@ final class PreferencesManager {
     }
 
     var currentLanguageCode: String {
-        get { defaults.string(forKey: "current_language") ?? nativeLanguageCode }
+        get { defaults.string(forKey: "current_language") ?? primaryLanguageCode }
         set { defaults.set(newValue, forKey: "current_language"); sync() }
     }
 
-    var nativeLanguage: Language {
-        Language.fromCode(nativeLanguageCode) ?? Language.all[0]
+    var primaryLanguage: Language {
+        Language.fromCode(primaryLanguageCode) ?? Language.all[0]
     }
 
     var currentLanguage: Language {
-        Language.fromCode(currentLanguageCode) ?? nativeLanguage
+        Language.fromCode(currentLanguageCode) ?? primaryLanguage
     }
 
     var targetLanguages: [Language] {
@@ -53,7 +53,7 @@ final class PreferencesManager {
     func toggle() {
         if isEnabled {
             isEnabled = false
-            currentLanguageCode = nativeLanguageCode
+            currentLanguageCode = primaryLanguageCode
         } else {
             guard !targetLanguages.isEmpty else { return }
             isEnabled = true

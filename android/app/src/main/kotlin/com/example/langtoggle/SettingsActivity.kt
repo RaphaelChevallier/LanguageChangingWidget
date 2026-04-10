@@ -9,20 +9,26 @@ import androidx.appcompat.app.AppCompatActivity
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var prefs: PrefsManager
-    private lateinit var nativeValue: TextView
+    private lateinit var primaryValue: TextView
     private lateinit var targetsValue: TextView
     private lateinit var intervalValue: TextView
+    private lateinit var statusFlag: TextView
+    private lateinit var statusName: TextView
+    private lateinit var statusMode: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
         prefs = PrefsManager(this)
 
-        nativeValue = findViewById(R.id.setting_native_value)
+        primaryValue = findViewById(R.id.setting_primary_value)
         targetsValue = findViewById(R.id.setting_targets_value)
         intervalValue = findViewById(R.id.setting_interval_value)
+        statusFlag = findViewById(R.id.status_flag)
+        statusName = findViewById(R.id.status_lang_name)
+        statusMode = findViewById(R.id.status_mode)
 
-        findViewById<View>(R.id.setting_native).setOnClickListener { pickNativeLanguage() }
+        findViewById<View>(R.id.setting_primary).setOnClickListener { pickPrimaryLanguage() }
         findViewById<View>(R.id.setting_targets).setOnClickListener { pickTargetLanguages() }
         findViewById<View>(R.id.setting_interval).setOnClickListener { pickInterval() }
 
@@ -30,21 +36,25 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun refreshUI() {
-        nativeValue.text = prefs.nativeLanguage.toString()
+        val current = prefs.currentLanguage
+        statusFlag.text = current.flag
+        statusName.text = current.name
+        statusMode.text = if (prefs.isEnabled) "Learning Mode" else "Primary Mode"
+        primaryValue.text = prefs.primaryLanguage.toString()
         val targets = prefs.targetLanguages
         targetsValue.text = if (targets.isEmpty()) "None selected" else targets.joinToString("  ") { it.flag }
         intervalValue.text = prefs.interval.label
     }
 
-    private fun pickNativeLanguage() {
+    private fun pickPrimaryLanguage() {
         val languages = Language.ALL
         val names = languages.map { it.toString() }.toTypedArray()
-        val current = languages.indexOfFirst { it.code == prefs.nativeLanguageCode }
+        val current = languages.indexOfFirst { it.code == prefs.primaryLanguageCode }
 
         AlertDialog.Builder(this)
-            .setTitle("Native Language")
+            .setTitle("Primary Language")
             .setSingleChoiceItems(names, current) { dialog, which ->
-                prefs.nativeLanguageCode = languages[which].code
+                prefs.primaryLanguageCode = languages[which].code
                 refreshUI()
                 dialog.dismiss()
             }
@@ -52,7 +62,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun pickTargetLanguages() {
-        val languages = Language.ALL.filter { it.code != prefs.nativeLanguageCode }
+        val languages = Language.ALL.filter { it.code != prefs.primaryLanguageCode }
         val names = languages.map { it.toString() }.toTypedArray()
         val selected = prefs.targetLanguageCodes
         val checked = languages.map { it.code in selected }.toBooleanArray()

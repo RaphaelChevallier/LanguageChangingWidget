@@ -52,8 +52,8 @@ class LangToggleWidget : AppWidgetProvider() {
 
     private fun disable(context: Context, prefs: PrefsManager) {
         prefs.isEnabled = false
-        prefs.currentLanguageCode = prefs.nativeLanguageCode
-        setAppLocale(context, prefs.nativeLanguageCode)
+        prefs.currentLanguageCode = prefs.primaryLanguageCode
+        setAppLocale(context, prefs.primaryLanguageCode)
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
     }
 

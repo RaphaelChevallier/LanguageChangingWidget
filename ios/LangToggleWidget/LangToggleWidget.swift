@@ -3,7 +3,7 @@ import SwiftUI
 
 struct LangToggleProvider: TimelineProvider {
     func placeholder(in context: Context) -> LangToggleEntry {
-        LangToggleEntry(date: Date(), isEnabled: false, flag: "🏠", name: "Native")
+        LangToggleEntry(date: Date(), isEnabled: false, flag: "🏠", name: "Primary")
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LangToggleEntry) -> Void) {

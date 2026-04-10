@@ -8,7 +8,7 @@ Lightweight native home-screen widgets for **Android** and **iOS** that help you
 
 - Home-screen widget shows current language flag + name with ON/OFF toggle
 - Tap widget to toggle between learning mode and native mode
-- Settings screen to pick native language, target languages, and rotation interval
+- Settings screen to pick primary language, target languages, and rotation interval
 - Background rotation via WorkManager (Android) / WidgetKit timeline (iOS)
 - Per-app locale switching on Android 13+ via `LocaleManager`
 
@@ -83,11 +83,11 @@ Long-press home screen → tap **+** → search **LangToggle** → add Small or 
 
 ## How it works
 
-1. Open the app → choose your native language, target languages, and rotation interval.
+1. Open the app → choose your primary language, target languages, and rotation interval.
 2. Add the widget to your home screen.
 3. Tap the widget toggle to **ON** — a random target language is applied immediately.
 4. Background task rotates to a new random language at each interval.
-5. Tap the widget again to revert to your native language.
+5. Tap the widget again to revert to your primary language.
 
 > **Note:** iOS does not allow programmatic system language changes. LangToggle changes in-app locale only. On Android 13+ it also sets the per-app system locale via `LocaleManager`.
 # LangToggle — Language Learning Widget
